@@ -36,19 +36,21 @@ module SlimLint
     # @yieldreturn [Boolean] block should return whether item matches criteria
     #   for inclusion
     def for_consecutive_items(items, satisfies, min_consecutive = 2)
-      current_index = -1
+      # current_index = -1
 
-      while (current_index += 1) < items.count
-        next unless satisfies[items[current_index]]
+      # while (current_index += 1) < items.count
+      #   next unless satisfies[items[current_index]]
 
-        count = count_consecutive(items, current_index, &satisfies)
-        next unless count >= min_consecutive
+      #   count = count_consecutive(items, current_index, &satisfies)
+      #   next unless count >= min_consecutive
 
-        # Yield the chunk of consecutive items
-        yield items[current_index...(current_index + count)]
+      #   # Yield the chunk of consecutive items
+      #   yield items[current_index...(current_index + count)]
 
-        current_index += count # Skip this patch of consecutive items to find more
-      end
+      #   current_index += count # Skip this patch of consecutive items to find more
+      # end
+      items.chunk { satisfies[_1] }.select { |t, i| t && i.count >= min_consecutive }
+        .each { |_, i| yield i }
     end
 
     # Count the number of consecutive items satisfying the given {Proc}.

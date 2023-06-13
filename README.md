@@ -1,3 +1,45 @@
+# zverok's drafty branch
+
+> TODO: Remove this addition to README before PR to upstream!!!
+
+This is early draft (of "works in my hands" quality) of several improvements for slim-lint tool.
+
+Adjustments:
+
+* Print stats at the end of found problems list;
+* Allow to check only one Rubocop cop or department with `-i RuboCop/Cop/Name`;
+* Allow to autocorrect lints with `-a`/`--autocorrect` (including Rubocop ones, this is non-trivial).
+
+The implementation of autocorrect is pretty naive and lacks tests, but tested on a big production production codebase. The most fragile (while also probably the most useful) is RuboCop autocorrection which uses some unholy tricks to guess what to do.
+
+Recommendation on RuboCop autocorrect, especially applied to large codebases:
+* first make a list of all offenses (with `-i RuboCop`), then look at them, and see:
+  * which are irrelevant with slim-lint (those can be added to `RuboCop/ignored_cops:` section of config)
+  * which are potentially reordering lines (those will broke with slim-lint!); you can add them to `RuboCop/non_correctible_cops:` section (added by this fork), so they'll still be reported, but will never attempt to correct. Otherwise, you'll have **very** weird corrections, or reports "Can't correct file"
+* go by departments `-i RuboCop/Style` or even cop-by-cop `-i RuboCop/Style/HashSyntax` for clearer perspective on what's changed and why;
+* note that sometimes slim-lint will glitch in reporting which line the offense in, so you'll still need to fix it manually.
+
+I plan to work on this branch to get it to production quality and submit as a several independent PRs to upstream, but the timing is unclear.
+
+Things I would also like to work on once:
+
+* ability to provide Rubocop config adjustments right in Slim-Lint config instead of ENV var;
+* tigher integration with Rubocop to utilize its caching abilities (and/or maybe introduce caching in slim-lint itself, so if neither configs nor file is changed, already cached analysis reports would be reused for the file);
+* improve `ConsecutiveControlStatements` handle code like this (currently it only able to catch statements that are on the same level, not nested in each other):
+  ```slim
+  - if foo
+    - bar = baz
+  - else
+    - blah
+  - end
+  ```
+
+---
+
+Original README:
+
+---
+
 # Slim-Lint
 
 [![Gem Version](https://badge.fury.io/rb/slim_lint.svg)](http://badge.fury.io/rb/slim_lint)

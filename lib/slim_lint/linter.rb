@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require_relative 'corrector'
+
 module SlimLint
   # Base implementation for all lint checks.
   #
@@ -26,10 +28,11 @@ module SlimLint
     # Runs the linter against the given Slim document.
     #
     # @param document [SlimLint::Document]
-    def run(document)
+    def run(document, autocorrect: false)
       @document = document
       @lints = []
       @disabled_lines = nil
+      @autocorrect = autocorrect
       trigger_pattern_callbacks(document.sexp)
       @lints
     end
@@ -53,6 +56,16 @@ module SlimLint
       return if disabled_for_line?(node.line)
 
       @lints << SlimLint::Lint.new(self, @document.file, node.line, message)
+    end
+
+    def correct_lint(&block)
+      return unless @autocorrect
+
+      # TODO: Adjust output if the correct was successful (see how Rubocop does it)
+
+      corrector = Corrector.new(document.source)
+      yield corrector
+      document.edit(corrector.source)
     end
 
     # Parse Ruby code into an abstract syntax tree.

@@ -17,6 +17,9 @@ module SlimLint
       next unless %w[class id].include?(attr)
 
       report_lint(sexp, MESSAGE % attr)
+      correct_lint do |corrector|
+        corrector.edit_line(sexp.line) { _1.sub(/\A(\s*)div([.#])/, '\\1\\2') }
+      end
     end
   end
 end

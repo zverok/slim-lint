@@ -13,6 +13,11 @@ module SlimLint
 
         report_lint(dummy_node.new(index + 1),
                     'Line contains trailing whitespace')
+
+        correct_lint do |corrector|
+          # Remember corrector lines end with "\n" which should NOT be removed
+          corrector.edit_line(index + 1) { _1.sub(/ +\n$/, "\n") }
+        end
       end
     end
   end

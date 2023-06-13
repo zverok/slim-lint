@@ -31,8 +31,13 @@ module SlimLint
     # @param options [Hash]
     # @return [Array<SlimLint::Linter>]
     def extract_enabled_linters(config, options)
+      # Allow `-i RuboCop/Foo` and `-i RuboCop/Foo/Bar`, meaning "only use cop Foo/Bar"
+      # TODO: This wouldn't allow `-i Rubocop/Foo,Rubocop/Bar` yet, should be adjusted
+      included_linter_settings = options.fetch(:included_linters, [])
+                                        .map { _1.split('/', 2) }.to_h { |name, sublinter| [name, sublinter] }
+
       included_linters =
-        LinterRegistry.extract_linters_from(options.fetch(:included_linters, []))
+        LinterRegistry.extract_linters_from(included_linter_settings.keys)
 
       included_linters = LinterRegistry.linters if included_linters.empty?
 
@@ -43,6 +48,9 @@ module SlimLint
       # linters which are enabled in the configuration
       linters = (included_linters - excluded_linters).map do |linter_class|
         linter_config = config.for_linter(linter_class)
+        if sublinters = included_linter_settings[linter_class.name.split('::').last]
+          linter_config = linter_config.merge('only' => sublinters)
+        end
         linter_class.new(linter_config) if linter_config['enabled']
       end.compact
 

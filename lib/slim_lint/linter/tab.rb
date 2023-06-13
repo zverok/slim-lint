@@ -13,6 +13,11 @@ module SlimLint
         next unless line =~ /^( *)[\t ]*\t/
 
         report_lint(dummy_node.new(index + 1), MSG)
+
+        correct_lint do |corrector|
+          # TODO: Probably requires config of tab size if to be merged in the upstream
+          corrector.edit_line(index + 1) { _1.gsub("\t", "  ") }
+        end
       end
     end
   end

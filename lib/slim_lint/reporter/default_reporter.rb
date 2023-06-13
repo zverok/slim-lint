@@ -12,6 +12,8 @@ module SlimLint
         print_type(lint)
         print_message(lint)
       end
+
+      print_stats(sorted_lints)
     end
 
     private
@@ -36,6 +38,15 @@ module SlimLint
       end
 
       log.log lint.message
+    end
+
+    def print_stats(lints)
+      # TODO: Time of running
+      # TODO: Configurable
+      # TODO: Total number of files processed
+      log.log ''
+      log.log "#{lints.count} problems found in #{lints.group_by(&:filename).count} files, "\
+              "#{lints.count(&:error?)} errors, #{lints.reject(&:error?).count} warnings."
     end
   end
 end

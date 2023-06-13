@@ -10,11 +10,18 @@ module SlimLint
       dummy_node = Struct.new(:line)
 
       was_empty = true
+      removed = 0
       document.source.lines.each_with_index do |line, i|
         if line.blank?
           if was_empty
             report_lint(dummy_node.new(i + 1),
                         'Extra empty line detected')
+            correct_lint { |corrector|
+              # corrector has lines including "\n", so just replacing with empty line will remove it
+              removed += 1
+              # we need to account for already removed lines to remove the right one
+              corrector.edit_line(i + 1 - removed) { '' }
+            }
           end
           was_empty = true
         else

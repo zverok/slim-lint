@@ -1,4 +1,5 @@
 Gemfile.lock
 /coverage
 /pkg
+/tmp
 .ruby-version

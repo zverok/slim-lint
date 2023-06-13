@@ -12,9 +12,15 @@ module SlimLint
       if !document.source.end_with?("\n")
         report_lint(dummy_node.new(document.source_lines.size),
                     'No blank line in the end of file')
+        correct_lint do |corrector|
+          corrector.replace(document.source + "\n")
+        end
       elsif document.source.lines.last.blank?
         report_lint(dummy_node.new(document.source.lines.size),
                     'Multiple empty lines in the end of file')
+        correct_lint do |corrector|
+          corrector.replace(document.source.sub(/\s+\n\z/m, "\n"))
+        end
       end
     end
   end

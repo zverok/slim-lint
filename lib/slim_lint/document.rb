@@ -27,8 +27,19 @@ module SlimLint
     def initialize(source, options)
       @config = options[:config]
       @file = options.fetch(:file, nil)
+      @edited = false
 
       process_source(source)
+    end
+
+    def edit(new_source)
+      return if source == new_source
+      @edited = true
+      process_source(new_source)
+    end
+
+    def edited?
+      @edited
     end
 
     private

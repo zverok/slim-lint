@@ -16,15 +16,16 @@ module SlimLint
     def run(options = {})
       config = load_applicable_config(options)
       linter_selector = SlimLint::LinterSelector.new(config, options)
+      autocorrect = options[:autocorrect]
 
       if options[:stdin_file_path].nil?
         files = extract_applicable_files(config, options)
         lints = files.map do |file|
-          collect_lints(File.read(file), file, linter_selector, config)
+          collect_lints(File.read(file), file, linter_selector, config, autocorrect: autocorrect)
         end.flatten
       else
         files = [options[:stdin_file_path]]
-        lints = collect_lints($stdin.read, options[:stdin_file_path], linter_selector, config)
+        lints = collect_lints($stdin.read, options[:stdin_file_path], linter_selector, config, autocorrect: autocorrect)
       end
 
       SlimLint::Report.new(lints, files)
@@ -53,7 +54,7 @@ module SlimLint
     # @param file [String] path to file to lint
     # @param linter_selector [SlimLint::LinterSelector]
     # @param config [SlimLint::Configuration]
-    def collect_lints(file_content, file_name, linter_selector, config)
+    def collect_lints(file_content, file_name, linter_selector, config, autocorrect: false)
       begin
         document = SlimLint::Document.new(file_content, file: file_name, config: config)
       rescue SlimLint::Exceptions::ParseError => e
@@ -61,8 +62,10 @@ module SlimLint
       end
 
       linter_selector.linters_for_file(file_name).map do |linter|
-        linter.run(document)
+        linter.run(document, autocorrect: autocorrect)
       end.flatten
+    ensure
+      File.write(file_name, document.source) if document.edited?
     end
 
     # Returns the list of files that should be linted given the specified
